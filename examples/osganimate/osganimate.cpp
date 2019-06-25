@@ -37,6 +37,8 @@
 #include <osgViewer/Viewer>
 #include <iostream>
 
+#include <assert.h>
+
 osg::AnimationPath* createAnimationPath(const osg::Vec3& center,float radius,double looptime)
 {
     // set up the animation path
@@ -223,18 +225,49 @@ osg::ref_ptr<osg::Group> createModel(bool overlay, osgSim::OverlayNode::OverlayT
 int main( int argc, char **argv )
 {
 
-    bool overlay = false;
-    osg::ArgumentParser arguments(&argc,argv);
-    while (arguments.read("--overlay")) overlay = true;
+  osg::GraphicsContext::WindowingSystemInterface* wsi =
+    osg::GraphicsContext::getWindowingSystemInterface();
+  if (!wsi) {
+    osg::notify(osg::NOTICE)<<"Error, no WindowSystemInterface available, cannot create windows."<<std::endl;
+    return 0;
+  }
+
+  unsigned int width, height;
+  wsi->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0),
+			   width, height);
+  std::cout << "width:" << width << ", height:" << height << std::endl;
+
+  auto traits = new osg::GraphicsContext::Traits();
+  traits->x = 0;
+  traits->y = 0;
+  traits->width = width;
+  traits->height = height;
+  traits->windowDecoration = false;
+  traits->doubleBuffer = true;
+  traits->sharedContext = 0;
+  traits->overrideRedirect = true;
+  osg::ref_ptr<osg::GraphicsContext> gc =
+    osg::GraphicsContext::createGraphicsContext(traits);
+
+  bool overlay = false;
+  osg::ArgumentParser arguments(&argc,argv);
+  while (arguments.read("--overlay")) overlay = true;
 
     osgSim::OverlayNode::OverlayTechnique technique = osgSim::OverlayNode::OBJECT_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY;
     while (arguments.read("--object")) { technique = osgSim::OverlayNode::OBJECT_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY; overlay=true; }
     while (arguments.read("--ortho") || arguments.read("--orthographic")) { technique = osgSim::OverlayNode::VIEW_DEPENDENT_WITH_ORTHOGRAPHIC_OVERLAY; overlay=true; }
     while (arguments.read("--persp") || arguments.read("--perspective")) { technique = osgSim::OverlayNode::VIEW_DEPENDENT_WITH_PERSPECTIVE_OVERLAY; overlay=true; }
 
-
     // initialize the viewer.
     osgViewer::Viewer viewer;
+    osgViewer::ViewerBase::Cameras cams;
+    auto cam = viewer.getCamera();
+    cam->setGraphicsContext(gc.get());
+    //cam->setViewport(1920, 312, 1024, 768);
+    //cam->setViewport(0, 0, 1920, 1080);
+
+    cam->setViewport(0, 312, 1024, 768);
+    // cam->setViewport(1024, 0, 1920, 1080);
 
     // load the nodes from the commandline arguments.
     osg::ref_ptr<osg::Group> model = createModel(overlay, technique);
