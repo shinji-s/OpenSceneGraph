@@ -424,6 +424,12 @@ ENDIF(WIN32 AND NOT ANDROID)
 #luigi#    SET(CMAKE_CXX_FLAGS_DEBUG "-ggdb -gstabs")
 #luigi#ENDIF(UNIX)
 ########################################################################################################
+IF(UNIX)
+    SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+    SET(CMAKE_CXX_FLAGS_DEBUG "-ggdb -gstabs")
+    # SET(CMAKE_CXX_FLAGS_DEBUG "-g")
+ENDIF(UNIX)
+
 
 OPTION(OSG_NOTIFY_DISABLED "Set to ON to build OpenSceneGraph with the notify() disabled." OFF)
 
@@ -713,7 +719,7 @@ ENDIF()
 OPTION(BUILD_OSG_APPLICATIONS "Enable to build OSG Applications (e.g. osgviewer)" ON)
 
 # OSG Examples
-OPTION(BUILD_OSG_EXAMPLES "Enable to build OSG Examples" OFF)
+OPTION(BUILD_OSG_EXAMPLES "Enable to build OSG Examples" ON)
 
 # OSG Plugins disable option for apple build on travis ci test - full build job runs over time limit of 50 min.
 OPTION(BUILD_OSG_PLUGINS "Build OSG Plugins - Disable for compile testing examples on a time limit" ON)
